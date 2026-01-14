@@ -59,6 +59,7 @@ export default function Home() {
             Documentation
           </a>
         </div>
+        <span style="width:100%;">This is a test</span>
       </main>
     </div>
   );
