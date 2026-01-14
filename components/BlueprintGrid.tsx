@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { getStatuses, saveStatuses } from "@/lib/storage";
 import BlueprintTile from "./BlueprintTile";
 
@@ -18,13 +18,24 @@ type Props = {
 const STATUSES = ["unknown","need","learned"] as const;
 type StatusKey = typeof STATUSES[number];
 
+type OverlayPos = {
+  top: number;
+  left: number;
+  side: "right" | "left";
+};
+
 export default function BlueprintGrid({ initialBlueprints = [] }: Props) {
   const [blueprints] = useState<Blueprint[]>(initialBlueprints);
   const [statuses, setStatuses] = useState<Record<string, StatusKey>>({});
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<StatusKey | "">("");
-  const [activeId, setActiveId] = useState<string | null>(null);
 
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const anchorElRef = useRef<HTMLElement | null>(null);       // tile element
+  const overlayRef = useRef<HTMLDivElement | null>(null);      // overlay element
+  const [overlayPos, setOverlayPos] = useState<OverlayPos | null>(null);
+
+  // migration: got/crafted -> learned
   useEffect(() => {
     const current = getStatuses() as Record<string, any>;
     const migrated: Record<string, StatusKey> = {};
@@ -35,7 +46,7 @@ export default function BlueprintGrid({ initialBlueprints = [] }: Props) {
     saveStatuses(migrated);
   }, []);
 
-  // Wire header controls
+  // Wire header controls (unchanged)
   useEffect(() => {
     const searchInput = document.getElementById("searchInput") as HTMLInputElement | null;
     if (searchInput) {
@@ -97,51 +108,31 @@ export default function BlueprintGrid({ initialBlueprints = [] }: Props) {
     setStatus(id, next);
   }
 
-  function onTileHover(id: string | null) {
-    setActiveId(id);
+  // --- Dynamic overlay positioning ---
+  function computeOverlayPosition(anchorEl: HTMLElement | null) {
+    if (!anchorEl) return null;
+
+    const gap = 12;
+    const overlayWidth = Math.min(380, Math.round(window.innerWidth * 0.4));
+    const rect = anchorEl.getBoundingClientRect();
+
+    const candidateRight = rect.right + window.scrollX + gap;
+    const candidateLeft = rect.left + window.scrollX - gap - overlayWidth;
+    const top = rect.top + window.scrollY; // align near top of tile
+
+    const willOverflowRight = candidateRight + overlayWidth > (window.scrollX + window.innerWidth);
+    const side: "right" | "left" = willOverflowRight ? "left" : "right";
+    const left = side === "right" ? candidateRight : Math.max(candidateLeft, 8); // don’t go off the left edge
+
+    return { top, left, side };
   }
 
-  const activeBp = activeId ? blueprints.find(b => b.id === activeId) ?? null : null;
-  const activeStatus = activeBp ? (statuses[activeBp.id] ?? "unknown") : "unknown";
-
-  return (
-    <>
-      <section id="grid" className="bp-grid" aria-busy={false} aria-live="polite">
-        {list.map(bp => (
-          <BlueprintTile
-            key={bp.id}
-            bp={bp}
-            status={statuses[bp.id] ?? "unknown"}
-            onCycle={() => onTileClick(bp.id)}
-            onSet={(s) => setStatus(bp.id, s)}
-            onHoverChange={(hovering) => onTileHover(hovering ? bp.id : (activeId === bp.id ? null : activeId))}
-          />
-        ))}
-      </section>
-
-      {activeBp && (
-        <aside className="bp-overlay" role="dialog" aria-label="Blueprint details">
-          <div className="bp-overlay-header">
-            <span className="tag">BLUEPRINT</span>
-            <h3>{activeBp.name.toUpperCase()}</h3>
-          </div>
-          <p className="bp-overlay-desc">
-            {activeBp.category} · {(activeBp.rarity ?? "—")}
-          </p>
-
-          <div className="bp-overlay-actions">
-            <button className="btn" onClick={() => setStatus(activeBp.id, "need")}>Need</button>
-            <button className="btn" onClick={() => setStatus(activeBp.id, "learned")}>Learned</button>
-          </div>
-
-          <div className="bp-overlay-meta">
-            <div className="meta-row">
-              <span className="label">Status</span>
-              <span className="value">{activeStatus === "learned" ? "Learned" : activeStatus}</span>
-            </div>
-          </div>
-        </aside>
-      )}
-    </>
-  );
-}
+  function onTileHover(hovering: boolean, el?: HTMLElement) {
+    if (hovering && el) {
+      anchorElRef.current = el;
+      const idAttr = el.getAttribute("data-id");
+      // If you prefer, inject data-id on the tile element; here we map via name/closest:
+      const article = el.closest("article");
+      if (!article) return;
+      // We stored key in the component map; simplest: pass the id via closure.
+      // As we only get the element, we’ll set activeId earlier in the Tile (see below).

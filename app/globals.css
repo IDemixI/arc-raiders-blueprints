@@ -1,21 +1,27 @@
+
 :root{
+  /* App theme */
   --bg: #0b1020;
   --glass: rgba(22,28,48,0.65);
   --text: #e8f0ff;
   --muted: #a8b3c7;
   --accent: #69c6ff;
   --radius: 12px;
+
+  /* Blueprint grid paper */
   --bp-navy: #0f2c66;
   --bp-line: rgba(255,255,255,0.08);
   --bp-line-bold: rgba(255,255,255,0.14);
   --bp-border: #284a8a;
   --bp-border-hover: #73b7ff;
 
+  /* Status colors (Unknown → Need → Learned) */
   --unknown: #67738a;
-  --need: #f1b54c;
-  --learned: #34d399;
+  --need: #f1b54c;    /* amber */
+  --learned: #34d399; /* green */
 }
 
+/* Reset & base */
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
@@ -28,7 +34,7 @@ body{
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
 }
 
-/* Header */
+/* Header (game-like) */
 .bp-header{
   position:sticky; top:0; z-index:10;
   backdrop-filter: blur(8px);
@@ -41,11 +47,16 @@ body{
   margin:0; letter-spacing:0.8px;
   font-weight:900; font-size: clamp(18px, 3vw, 26px);
 }
-.found{ margin-top:4px; color: var(--muted); font-weight:600; letter-spacing:0.6px; }
+.found{
+  margin-top:4px; color: var(--muted);
+  font-weight:600; letter-spacing:0.6px;
+}
 
+/* Header controls */
 .bp-controls{ display:flex; gap:8px; align-items:center; }
 .bp-controls input[type="search"], .bp-controls select{
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
   color: var(--text); border-radius: 8px; padding: 8px 10px; outline:none;
 }
 .bp-controls input::placeholder{ color: #b9c2d5; }
@@ -53,6 +64,7 @@ body{
   border-color: var(--accent); box-shadow: 0 0 0 4px rgba(105,198,255,0.2);
 }
 
+/* Main/grid */
 .bp-main{ padding: 16px clamp(12px, 4vw, 28px); }
 .bp-grid{
   display:grid;
@@ -60,21 +72,25 @@ body{
   gap: 12px;
 }
 
+/* Blueprint tile */
 .bp-tile{
   position:relative; height: 90px; border-radius: 10px;
   border: 1px solid var(--bp-border);
   cursor: pointer;
   background:
+    /* bold grid every ~5 cells */
     repeating-linear-gradient(90deg, var(--bp-line-bold) 0, var(--bp-line-bold) 1px, transparent 1px, transparent 120px),
-    repeating-linear-gradient(0deg, var(--bp-line-bold) 0, var(--bp-line-bold) 1px, transparent 1px, transparent 120px),
+    repeating-linear-gradient(0deg,  var(--bp-line-bold) 0, var(--bp-line-bold) 1px, transparent 1px, transparent 120px),
+    /* fine grid */
     repeating-linear-gradient(90deg, var(--bp-line) 0, var(--bp-line) 1px, transparent 1px, transparent 24px),
-    repeating-linear-gradient(0deg, var(--bp-line) 0, var(--bp-line) 1px, transparent 1px, transparent 24px),
+    repeating-linear-gradient(0deg,  var(--bp-line) 0, var(--bp-line) 1px, transparent 1px, transparent 24px),
     var(--bp-navy);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 4px 12px rgba(0,0,0,0.35);
-  transition: border-color 120ms ease, transform 120ms ease;
+  transition: border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
 .bp-tile:hover{ border-color: var(--bp-border-hover); transform: translateY(-2px); }
 
+/* Placeholder center icon (replace with real asset later) */
 .bp-icon{
   position:absolute; inset: 8px 8px 22px 8px;
   display:flex; align-items:center; justify-content:center;
@@ -82,6 +98,7 @@ body{
 }
 .placeholder{ width:42px; height:42px; }
 
+/* Bottom micro bar (book glyph like game) */
 .bp-bottom-bar{
   position:absolute; left:0; right:0; bottom:0; height: 20px;
   background: rgba(8,24,60,0.35);
@@ -90,6 +107,7 @@ body{
 }
 .bp-bottom-bar .book{ font-size: 13px; opacity:0.9; }
 
+/* Corner check (visible when Learned) */
 .bp-check{
   position:absolute; top:6px; right:6px; width:16px; height:16px;
   border-radius:50%; border: 1px solid rgba(255,255,255,0.65);
@@ -102,28 +120,48 @@ body{
   transform: rotate(-45deg);
 }
 
+/* Status outlines (subtle, no text on tile) */
+.bp-tile.status-unknown{ outline: 2px solid transparent; }
+.bp-tile.status-need{ box-shadow: inset 0 0 0 2px rgba(241,181,76,0.6); }
+.bp-tile.status-learned{ box-shadow: inset 0 0 0 2px rgba(52,211,153,0.6); }
+
+/* Dynamic detail overlay — positioned next to hovered tile via inline style */
 .bp-overlay{
-  position: fixed;
-  top: 110px;
-  right: clamp(16px, 4vw, 32px);
+  position: fixed; /* top/left set by JS */
   width: min(380px, 40vw);
-  background: #f2e9dd;
+  background: #f2e9dd; /* warm cream panel, similar to game */
   color: #1d232f;
   border-radius: 12px;
   border: 1px solid rgba(0,0,0,0.1);
   box-shadow: 0 12px 28px rgba(0,0,0,0.35);
   padding: 14px 14px 12px;
   z-index: 30;
+  pointer-events: auto;
 }
-.bp-overlay::before{
+
+/* Arrow when overlay sits to the RIGHT of tile */
+.bp-overlay.right::before{
   content:"";
-  position:absolute; right: calc(100% + 8px); top: 24px;
+  position:absolute; left: -10px; top: 24px;
   width: 0; height: 0;
   border-top: 8px solid transparent;
   border-bottom: 8px solid transparent;
   border-right: 10px solid #f2e9dd;
   filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
 }
+
+/* Arrow when overlay sits to the LEFT of tile */
+.bp-overlay.left::before{
+  content:"";
+  position:absolute; right: -10px; top: 24px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 10px solid #f2e9dd;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+}
+
+/* Overlay content */
 .bp-overlay-header{ display:flex; align-items:center; gap:8px; }
 .bp-overlay-header .tag{
   font-size: 11px; font-weight: 700;
@@ -133,14 +171,17 @@ body{
 .bp-overlay-header h3{ margin:0; font-size: 16px; letter-spacing: 0.6px; }
 .bp-overlay-desc{ margin: 10px 0 12px; font-size: 13px; color: #394253; }
 
+/* Overlay actions */
 .bp-overlay-actions{ display:flex; gap:8px; margin-bottom: 10px; }
 .bp-overlay .btn{
   background: #f7f1e7;
   border: 1px solid #cfc4b6;
   color: #1d232f; border-radius: 8px; padding: 6px 10px; font-size: 12px;
+  cursor:pointer;
 }
 .bp-overlay .btn:hover{ border-color: #7d6e5b; }
 
+/* Overlay meta rows */
 .bp-overlay-meta .meta-row{
   display:flex; justify-content:space-between; align-items:center;
   padding: 6px 0; border-top: 1px solid rgba(0,0,0,0.06);
@@ -149,15 +190,12 @@ body{
 .bp-overlay-meta .label{ color: #5b6575; }
 .bp-overlay-meta .value{ font-weight: 600; color: #293241; }
 
-/* Status outlines */
-.bp-tile.status-unknown{ outline: 2px solid transparent; }
-.bp-tile.status-need{ box-shadow: inset 0 0 0 2px rgba(241,181,76,0.6); }
-.bp-tile.status-learned{ box-shadow: inset 0 0 0 2px rgba(52,211,153,0.6); }
+/* Footer */
+.bp-footer{ color: var(--muted); text-align:center; padding: 16px; }
 
+/* Responsive density */
 @media (min-width: 900px){
   .bp-grid{ grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
   .bp-tile{ height:110px; }
   .placeholder{ width:56px; height:56px; }
 }
-
-.bp-footer{ color: var(--muted); text-align:center; padding: 16px; }
