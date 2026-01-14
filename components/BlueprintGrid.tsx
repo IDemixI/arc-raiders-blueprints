@@ -16,7 +16,7 @@ type Props = {
   initialBlueprints?: Blueprint[];
 };
 
-const STATUSES = ["unknown","need","got","crafted"] as const;
+const STATUSES = ["unknown","need","owned"] as const;
 type StatusKey = typeof STATUSES[number];
 
 export default function BlueprintGrid({ initialBlueprints = [] }: Props) {

@@ -3,7 +3,7 @@
 
 import type { Blueprint } from "./BlueprintGrid";
 
-type StatusKey = "unknown" | "need" | "got" | "crafted";
+type StatusKey = "unknown" | "need" | "owned";
 
 export default function BlueprintTile({
   bp,
@@ -16,7 +16,7 @@ export default function BlueprintTile({
   onCycle: () => void;
   onSet: (next: StatusKey) => void;
 }) {
-  const showCheck = status === "got" || status === "crafted";
+  const showCheck = status === "owned";
 
   return (
     <article
@@ -48,8 +48,7 @@ export default function BlueprintTile({
         </div>
         <div className="bp-actions">
           <button className="btn" onClick={(e) => { e.stopPropagation(); onSet("need"); }}>Need</button>
-          <button className="btn" onClick={(e) => { e.stopPropagation(); onSet("got"); }}>Got</button>
-          <button className="btn" onClick={(e) => { e.stopPropagation(); onSet("crafted"); }}>Crafted</button>
+          <button className="btn" onClick={(e) => { e.stopPropagation(); onSet("owned"); }}>Owned</button>
           <button className="btn" onClick={(e) => { e.stopPropagation(); onCycle(); }}>Cycle</button>
         </div>
       </div>

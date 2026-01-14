@@ -1,7 +1,7 @@
 
 export const STORAGE_KEY = "arcraiders_bp_v2_ui";
 
-export function getStatuses(): Record<string, "unknown" | "need" | "got" | "crafted"> {
+export function getStatuses(): Record<string, "unknown" | "need" | "owned"> {
   if (typeof window === "undefined") return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -11,7 +11,7 @@ export function getStatuses(): Record<string, "unknown" | "need" | "got" | "craf
   }
 }
 
-export function saveStatuses(statuses: Record<string, "unknown" | "need" | "got" | "crafted">) {
+export function saveStatuses(statuses: Record<string, "unknown" | "need" | "owned">) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ statuses }));

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "ARC Raiders • Blueprints",
-  description: "Fan-made Blueprints Tracker",
+  title: "ARC Raiders • Blueprints Tracker",
+  description: "Fan-made Blueprints Tracker for Duos & Trios",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

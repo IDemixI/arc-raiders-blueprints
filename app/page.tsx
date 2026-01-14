@@ -8,7 +8,7 @@ export default function Page() {
     <>
       <header className="bp-header">
         <div className="bp-title">
-          <h1>BLUEPRINTS</h1>
+          <h1>ARC Raiders - Blueprints Tracker</h1>
           <div className="found">
             FOUND: <strong id="foundCount">0</strong>/<strong id="foundTotal">{blueprints.length}</strong>
           </div>
@@ -19,8 +19,7 @@ export default function Page() {
             <option value="">All</option>
             <option value="unknown">Unknown</option>
             <option value="need">Need</option>
-            <option value="got">Got</option>
-            <option value="crafted">Crafted</option>
+            <option value="owned">Owned</option>
           </select>
         </div>
       </header>
