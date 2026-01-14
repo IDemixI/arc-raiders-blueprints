@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -16,20 +15,27 @@ type Props = {
   initialBlueprints?: Blueprint[];
 };
 
-const STATUSES = ["unknown","need","owned"] as const;
+const STATUSES = ["unknown","need","learned"] as const;
 type StatusKey = typeof STATUSES[number];
 
 export default function BlueprintGrid({ initialBlueprints = [] }: Props) {
-  const [blueprints, setBlueprints] = useState<Blueprint[]>(initialBlueprints);
+  const [blueprints] = useState<Blueprint[]>(initialBlueprints);
   const [statuses, setStatuses] = useState<Record<string, StatusKey>>({});
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<StatusKey | "">("");
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
-    setStatuses(getStatuses());
+    const current = getStatuses() as Record<string, any>;
+    const migrated: Record<string, StatusKey> = {};
+    for (const [id, s] of Object.entries(current)) {
+      migrated[id] = (s === "got" || s === "crafted") ? "learned" : (s as StatusKey);
+    }
+    setStatuses(migrated);
+    saveStatuses(migrated);
   }, []);
 
-  // Wire header controls (search + filter) by IDs
+  // Wire header controls
   useEffect(() => {
     const searchInput = document.getElementById("searchInput") as HTMLInputElement | null;
     if (searchInput) {
@@ -63,12 +69,12 @@ export default function BlueprintGrid({ initialBlueprints = [] }: Props) {
       .sort((a,b) => a.name.localeCompare(b.name));
   }, [blueprints, statuses, search, filterStatus]);
 
-  // Found counter: non-unknown
+  // FOUND: learned only
   useEffect(() => {
     const foundCountEl = document.getElementById("foundCount");
     const foundTotalEl = document.getElementById("foundTotal");
-    const found = Object.values(statuses).filter(s => s && s !== "unknown").length;
-    if (foundCountEl) foundCountEl.textContent = String(found);
+    const learnedCount = Object.values(statuses).filter(s => s === "learned").length;
+    if (foundCountEl) foundCountEl.textContent = String(learnedCount);
     if (foundTotalEl) foundTotalEl.textContent = String(blueprints.length);
   }, [statuses, blueprints.length]);
 
@@ -91,17 +97,51 @@ export default function BlueprintGrid({ initialBlueprints = [] }: Props) {
     setStatus(id, next);
   }
 
+  function onTileHover(id: string | null) {
+    setActiveId(id);
+  }
+
+  const activeBp = activeId ? blueprints.find(b => b.id === activeId) ?? null : null;
+  const activeStatus = activeBp ? (statuses[activeBp.id] ?? "unknown") : "unknown";
+
   return (
-    <section id="grid" className="bp-grid" aria-busy={false} aria-live="polite">
-      {list.map(bp => (
-        <BlueprintTile
-          key={bp.id}
-          bp={bp}
-          status={statuses[bp.id] ?? "unknown"}
-          onCycle={() => onTileClick(bp.id)}
-          onSet={(s) => setStatus(bp.id, s)}
-        />
-      ))}
-    </section>
+    <>
+      <section id="grid" className="bp-grid" aria-busy={false} aria-live="polite">
+        {list.map(bp => (
+          <BlueprintTile
+            key={bp.id}
+            bp={bp}
+            status={statuses[bp.id] ?? "unknown"}
+            onCycle={() => onTileClick(bp.id)}
+            onSet={(s) => setStatus(bp.id, s)}
+            onHoverChange={(hovering) => onTileHover(hovering ? bp.id : (activeId === bp.id ? null : activeId))}
+          />
+        ))}
+      </section>
+
+      {activeBp && (
+        <aside className="bp-overlay" role="dialog" aria-label="Blueprint details">
+          <div className="bp-overlay-header">
+            <span className="tag">BLUEPRINT</span>
+            <h3>{activeBp.name.toUpperCase()}</h3>
+          </div>
+          <p className="bp-overlay-desc">
+            {activeBp.category} · {(activeBp.rarity ?? "—")}
+          </p>
+
+          <div className="bp-overlay-actions">
+            <button className="btn" onClick={() => setStatus(activeBp.id, "need")}>Need</button>
+            <button className="btn" onClick={() => setStatus(activeBp.id, "learned")}>Learned</button>
+          </div>
+
+          <div className="bp-overlay-meta">
+            <div className="meta-row">
+              <span className="label">Status</span>
+              <span className="value">{activeStatus === "learned" ? "Learned" : activeStatus}</span>
+            </div>
+          </div>
+        </aside>
+      )}
+    </>
   );
 }

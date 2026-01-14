@@ -1,4 +1,3 @@
-@import "tailwindcss";
 :root{
   --bg: #0b1020;
   --glass: rgba(22,28,48,0.65);
@@ -14,8 +13,7 @@
 
   --unknown: #67738a;
   --need: #f1b54c;
-  --got: #34d399;
-  --crafted: #60a5fa;
+  --learned: #34d399;
 }
 
 *{box-sizing:border-box}
@@ -62,7 +60,6 @@ body{
   gap: 12px;
 }
 
-/* Tiles */
 .bp-tile{
   position:relative; height: 90px; border-radius: 10px;
   border: 1px solid var(--bp-border);
@@ -105,32 +102,57 @@ body{
   transform: rotate(-45deg);
 }
 
-/* Hover overlay */
-.bp-hover{
-  position:absolute; inset: 4px; border-radius:8px;
-  background: rgba(6, 18, 40, 0.88);
-  border: 1px solid rgba(255,255,255,0.12);
-  padding: 6px; display:none;
+.bp-overlay{
+  position: fixed;
+  top: 110px;
+  right: clamp(16px, 4vw, 32px);
+  width: min(380px, 40vw);
+  background: #f2e9dd;
+  color: #1d232f;
+  border-radius: 12px;
+  border: 1px solid rgba(0,0,0,0.1);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+  padding: 14px 14px 12px;
+  z-index: 30;
 }
-.bp-tile:hover .bp-hover, .bp-tile:focus .bp-hover{ display:block; }
+.bp-overlay::before{
+  content:"";
+  position:absolute; right: calc(100% + 8px); top: 24px;
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 10px solid #f2e9dd;
+  filter: drop-shadow(0 0 2px rgba(0,0,0,0.2));
+}
+.bp-overlay-header{ display:flex; align-items:center; gap:8px; }
+.bp-overlay-header .tag{
+  font-size: 11px; font-weight: 700;
+  padding: 2px 6px; border-radius: 6px;
+  background: #e1d8cc; border: 1px solid rgba(0,0,0,0.1);
+}
+.bp-overlay-header h3{ margin:0; font-size: 16px; letter-spacing: 0.6px; }
+.bp-overlay-desc{ margin: 10px 0 12px; font-size: 13px; color: #394253; }
 
-.bp-hover .bp-name{
-  margin: 2px 0 4px; font-size: 13px; font-weight: 700; letter-spacing: 0.2px;
+.bp-overlay-actions{ display:flex; gap:8px; margin-bottom: 10px; }
+.bp-overlay .btn{
+  background: #f7f1e7;
+  border: 1px solid #cfc4b6;
+  color: #1d232f; border-radius: 8px; padding: 6px 10px; font-size: 12px;
 }
-.bp-hover .bp-meta{ font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-.bp-actions{ display:flex; gap:6px; }
-.btn{
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.16);
-  color: var(--text); border-radius: 6px; padding: 4px 8px;
-  font-size: 12px; cursor:pointer;
-}
-.btn:hover{ border-color: var(--accent); }
+.bp-overlay .btn:hover{ border-color: #7d6e5b; }
 
+.bp-overlay-meta .meta-row{
+  display:flex; justify-content:space-between; align-items:center;
+  padding: 6px 0; border-top: 1px solid rgba(0,0,0,0.06);
+  font-size: 13px;
+}
+.bp-overlay-meta .label{ color: #5b6575; }
+.bp-overlay-meta .value{ font-weight: 600; color: #293241; }
+
+/* Status outlines */
 .bp-tile.status-unknown{ outline: 2px solid transparent; }
 .bp-tile.status-need{ box-shadow: inset 0 0 0 2px rgba(241,181,76,0.6); }
-.bp-tile.status-got{ box-shadow: inset 0 0 0 2px rgba(52,211,153,0.6); }
-.bp-tile.status-crafted{ box-shadow: inset 0 0 0 2px rgba(96,165,250,0.6); }
+.bp-tile.status-learned{ box-shadow: inset 0 0 0 2px rgba(52,211,153,0.6); }
 
 @media (min-width: 900px){
   .bp-grid{ grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }

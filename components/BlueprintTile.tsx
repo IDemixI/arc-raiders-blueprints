@@ -1,22 +1,22 @@
-
 "use client";
 
 import type { Blueprint } from "./BlueprintGrid";
-
-type StatusKey = "unknown" | "need" | "owned";
+type StatusKey = "unknown" | "need" | "learned";
 
 export default function BlueprintTile({
   bp,
   status,
   onCycle,
   onSet,
+  onHoverChange,
 }: {
   bp: Blueprint;
   status: StatusKey;
   onCycle: () => void;
   onSet: (next: StatusKey) => void;
+  onHoverChange?: (hovering: boolean) => void;
 }) {
-  const showCheck = status === "owned";
+  const showCheck = status === "learned";
 
   return (
     <article
@@ -24,6 +24,10 @@ export default function BlueprintTile({
       tabIndex={0}
       role="button"
       aria-pressed={status !== "unknown"}
+      onMouseEnter={() => onHoverChange?.(true)}
+      onMouseLeave={() => onHoverChange?.(false)}
+      onFocus={() => onHoverChange?.(true)}
+      onBlur={() => onHoverChange?.(false)}
       onClick={(e) => {
         const isBtn = (e.target as HTMLElement).closest(".btn");
         if (!isBtn) onCycle();
@@ -31,26 +35,13 @@ export default function BlueprintTile({
     >
       <div className="bp-check" style={{ display: showCheck ? "block" : "none" }} aria-hidden="true"></div>
       <div className="bp-icon" aria-hidden="true">
-        {/* Placeholder; replace with /icons/{bp.id}.png later */}
+        {/* Placeholder; replace with <img src="/icons/{ later */}
         <svg viewBox="0 0 24 24" className="placeholder" focusable="false" aria-hidden="true">
           <path fill="currentColor" d="M4 6h16v12H4zM8 10h8v2H8z"></path>
         </svg>
       </div>
       <div className="bp-bottom-bar" aria-hidden="true">
         <span className="book">📘</span>
-      </div>
-
-      {/* Hover overlay */}
-      <div className="bp-hover">
-        <h3 className="bp-name">{bp.name}</h3>
-        <div className="bp-meta">
-          <span className="bench">{bp.category || "—"}</span> · <span className="rarity">{(bp.rarity || "—")}</span>
-        </div>
-        <div className="bp-actions">
-          <button className="btn" onClick={(e) => { e.stopPropagation(); onSet("need"); }}>Need</button>
-          <button className="btn" onClick={(e) => { e.stopPropagation(); onSet("owned"); }}>Owned</button>
-          <button className="btn" onClick={(e) => { e.stopPropagation(); onCycle(); }}>Cycle</button>
-        </div>
       </div>
     </article>
   );
