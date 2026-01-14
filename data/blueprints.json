@@ -1,0 +1,6 @@
+[
+  { "id": "bp_anvil", "name": "Anvil", "category": "Gunsmith", "rarity": "rare" },
+  { "id": "bp_burletta", "name": "Burletta", "category": "Gunsmith", "rarity": "uncommon" },
+  { "id": "bp_blaze_grenade", "name": "Blaze Grenade", "category": "Explosives Station", "rarity": "rare" },
+  { "id": "bp_defibrillator", "name": "Defibrillator", "category": "Medical Lab", "rarity": "uncommon" }
+]
